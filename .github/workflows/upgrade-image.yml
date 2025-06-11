@@ -38,7 +38,11 @@ jobs:
               id: compare-versions
               run: |
                 # Compare the current and latest versions
-                if [ "${{ steps.get-latest-image.outputs.latest_version }}" != "${{ steps.get-current-image.outputs.current_version }}" ]; then
+                # Strip "release-" prefix from current version if it exists
+                CURRENT_VERSION="${{ steps.get-current-image.outputs.current_version }}"
+                CURRENT_VERSION=$(echo $CURRENT_VERSION | sed 's/^release-//')
+
+                if [ "${{ steps.get-latest-image.outputs.latest_version }}" != "$CURRENT_VERSION" ]; then
                     echo "Versions differ. Updating image to ${{ steps.get-latest-image.outputs.latest_version }}"
                     sed -i "s/mattermost\/mattermost-enterprise-edition:[^ ]*/mattermost\/mattermost-enterprise-edition:release-${{ steps.get-latest-image.outputs.latest_version }}/" kubernetes/mattermost/mattermost.yml
                     echo "updated=true" >> $GITHUB_OUTPUT
